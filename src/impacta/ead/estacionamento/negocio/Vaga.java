@@ -1,5 +1,7 @@
 package impacta.ead.estacionamento.negocio;
 
+import impacta.ead.estacionamento.controle.EstacionamentoControle;
+
 /**
  * Representa as informações relativas a vagas do estacionamento ou status de ocupação
  *
@@ -8,7 +10,7 @@ package impacta.ead.estacionamento.negocio;
 
 public class Vaga {
     public static int TOTAL_VAGAS = 100;
-    private static int vagasOcupadas = 0;
+    private static int vagasOcupadas = inicializarOcupadas();
 
     private Vaga(){}
 
@@ -18,16 +20,16 @@ public class Vaga {
      * @return true se houver alguma vaga e false se não tiver vaga
      */
     public static boolean temVagaLivre(){
-        //TODO implementar este metodo
-        return false;
+        return (vagasOcupadas < TOTAL_VAGAS);
     }
 
     /**
      * Buscar o status atual das vagas do estacionamneto
      */
 
-    public static void inicializarOcupadas(){
-        //TODO implementar
+    public static int inicializarOcupadas(){
+        EstacionamentoControle controle = new EstacionamentoControle();
+        return controle.inicializarOcupadas();
     }
 
     /**

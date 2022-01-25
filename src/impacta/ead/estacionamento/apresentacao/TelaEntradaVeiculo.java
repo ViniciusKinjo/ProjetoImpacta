@@ -1,6 +1,8 @@
 package impacta.ead.estacionamento.apresentacao;
 
 import impacta.ead.estacionamento.controle.EstacionamentoControle;
+import impacta.ead.estacionamento.controle.EstacionamentoException;
+import impacta.ead.estacionamento.controle.VeiculoExeception;
 
 import javax.swing.*;
 import javax.swing.text.MaskFormatter;
@@ -49,17 +51,17 @@ public class TelaEntradaVeiculo extends JFrame implements ActionListener {
         getContentPane().add(lblCor);
 
         txtMarca = new JTextField();
-        txtMarca.setBounds(174, 82, 86, 20);
+        txtMarca.setBounds(174, 82, 97, 20);
         getContentPane().add(txtMarca);
         txtMarca.setColumns(10);
 
         txtModelo = new JTextField();
-        txtModelo.setBounds(174, 121, 86, 20);
+        txtModelo.setBounds(174, 121, 97, 20);
         getContentPane().add(txtModelo);
         txtModelo.setColumns(10);
 
         txtCor = new JTextField();
-        txtCor.setBounds(174, 160, 86, 20);
+        txtCor.setBounds(174, 160, 97, 20);
         getContentPane().add(txtCor);
         txtCor.setColumns(10);
 
@@ -88,10 +90,15 @@ public class TelaEntradaVeiculo extends JFrame implements ActionListener {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        if(e.getActionCommand().equals("ok")){
+    public void actionPerformed(ActionEvent evento) {
+        if(evento.getActionCommand().equals("ok")){
             EstacionamentoControle controle = new EstacionamentoControle();
-            controle.processarEntradata(txfPlaca.getText(), txtMarca.getText(), txtModelo.getText(), txtCor.getText());
+            try {
+                controle.processarEntrada(txfPlaca.getText(), txtMarca.getText(), txtModelo.getText(), txtCor.getText());
+                JOptionPane.showMessageDialog(null, "Veiculo registrado com sucesso", "Entrada de Veiculo", JOptionPane.INFORMATION_MESSAGE);
+            } catch (EstacionamentoException | VeiculoExeception error) {
+                JOptionPane.showMessageDialog(null, error.getMessage(), "Falha na entrada", JOptionPane.ERROR_MESSAGE);
+            }
         }
 
             this.parent.setVisible(true);
