@@ -8,6 +8,8 @@ import impacta.ead.estacionamento.utilitario.EstacionamentoUtil;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DAOEstacionamento {
@@ -52,18 +54,102 @@ public class DAOEstacionamento {
         }
     }
 
-    public void atualizar(Movimentacao movimentacao){
-        //TODO implementar
+    public void atualizar(Movimentacao movimentacao) throws EstacionamentoException {
+        String cmd1 = EstacionamentoUtil.get("updateMov");
+        String cmd2 = EstacionamentoUtil.get("atualizaVaga");
+
+        Connection conexao = null;
+        try {
+            conexao = getConnection();
+            conexao.setAutoCommit(false);
+
+            PreparedStatement stmt = conexao.prepareStatement(cmd1);
+            stmt.setDouble(1, movimentacao.getValor());
+            stmt.setString(2, EstacionamentoUtil.
+                    getDataAsString(movimentacao.getDataHoraSaida()));
+            stmt.setString(3, movimentacao.getVeiculo().getPlaca());
+
+            stmt.execute();
+            stmt = conexao.prepareStatement(cmd2);
+            stmt.setInt(1, Vaga.ocupadas() - 1);
+            stmt.execute();
+
+            conexao.commit();
+        } catch (SQLException e) {
+            try {
+                e.printStackTrace();
+                conexao.rollback();
+                throw new EstacionamentoException("Erro ao registrar veiculo");
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        }
+
     }
 
-    public Movimentacao buscarMovimentacaoAberta(String placa){
-        //TODO implementar
-        return null;
+    public Movimentacao buscarMovimentacaoAberta(String placa) {
+        String cmd = EstacionamentoUtil.get("getMovAberta");
+        Connection conexao = null;
+        Movimentacao movimentacao = null;
+        try {
+            conexao = getConnection();
+            PreparedStatement ps = conexao.prepareStatement(cmd);
+            ps.setString(1, placa);
+
+            ResultSet resultado = ps.executeQuery();
+
+            if(resultado.next()){
+                String rplaca = resultado.getString("placa");
+                String rdataEntrada = resultado.getString("data_entrada");
+                Veiculo veiculo = new Veiculo(rplaca);
+                movimentacao = new Movimentacao(veiculo, EstacionamentoUtil.getDate(rdataEntrada));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally{
+            closeConnection(conexao);
+        }
+
+        return movimentacao;
     }
 
-    public List<Movimentacao> consultarMovimentacoes(LocalDateTime data){
-        //TODO implementar
-        return null;
+    public List<Movimentacao> consultarMovimentacoes(LocalDateTime data) {
+        Connection conexao = null;
+        String cmd = EstacionamentoUtil.get("selectMovRelatorio");
+        List<Movimentacao> movimentacoes = new ArrayList<>();
+
+        try {
+            conexao = getConnection();
+            PreparedStatement ps = conexao.prepareStatement(cmd);
+            ps.setString(1, data.toString());
+            data = data.with(TemporalAdjusters.lastDayOfMonth());
+            ps.setString(2, data.toString());
+
+            ResultSet resultado = ps.executeQuery();
+            while(resultado.next()){
+                String placa = resultado.getString("placa");
+                LocalDateTime entrada =
+                        EstacionamentoUtil.getDate(resultado.getString("data_entrada"));
+                LocalDateTime saida =
+                        EstacionamentoUtil.getDate(resultado.getString("data_saida"));
+                double valor = resultado.getDouble("valor");
+
+                Veiculo veiculo = new Veiculo(placa);
+                Movimentacao movimentacao = new Movimentacao(veiculo,entrada);
+                movimentacao.setDataHoraSaida(saida);
+                movimentacao.setValor(valor);
+
+                movimentacoes.add(movimentacao);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally{
+            closeConnection(conexao);
+        }
+
+        return movimentacoes;
     }
 
     private static Connection getConnection() throws SQLException {
@@ -75,7 +161,7 @@ public class DAOEstacionamento {
         return conexao;
     }
 
-    public static void closeConection(Connection conexao){
+    public static void closeConnection(Connection conexao){
         if(conexao != null){
             try{
                conexao.close();
@@ -100,7 +186,7 @@ public class DAOEstacionamento {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         } finally {
-            closeConection(conexao);
+            closeConnection(conexao);
         }
         return ocupadas;
     }

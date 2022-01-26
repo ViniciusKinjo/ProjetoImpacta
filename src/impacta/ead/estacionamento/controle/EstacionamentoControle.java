@@ -48,15 +48,39 @@ public class EstacionamentoControle {
      * @return
      */
 
-    public Movimentacao processarSaida(String placa){
-        //TODO implementar
-        return null;
+    public Movimentacao processarSaida(String placa)
+            throws VeiculoExeception, EstacionamentoException {
+
+        //validar a placa
+        if (!EstacionamentoUtil.validarPadraoPlaca(placa)) {
+            throw new VeiculoExeception("Placa inv�lida!");
+        }
+
+        //Buscar a movimentacao aberta baseada na placa
+        DAOEstacionamento dao = new DAOEstacionamento();
+        Movimentacao movimentacao = dao.buscarMovimentacaoAberta(placa);
+
+        if (movimentacao == null) {
+            throw new EstacionamentoException("Ve�culo n�o encontrado!");
+        }
+
+        //Fazer o calculo do valor a ser pago
+        movimentacao.setDataHoraSaida(LocalDateTime.now());
+        EstacionamentoUtil.calcularValorPago(movimentacao);
+
+        //Atualizar os dados da movimentacao
+        dao.atualizar(movimentacao);
+
+        //Atualizar o status da vaga
+        Vaga.saiu();
+
+        return movimentacao;
     }
 
-    public List<Movimentacao> emitirRelatorio(LocalDateTime data) {
-        //TODO implementar
-        return null;
-    }
+        public List<Movimentacao> emitirRelatorio(LocalDateTime data){
+            DAOEstacionamento dao = new DAOEstacionamento();
+            return dao.consultarMovimentacoes(data);
+        }
 
     public int inicializarOcupadas(){
         DAOEstacionamento dao = new DAOEstacionamento();

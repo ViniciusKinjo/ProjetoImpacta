@@ -57,4 +57,8 @@ public class Vaga {
         Vaga.vagasOcupadas++;
     }
 
+
+    public static void saiu(){
+        Vaga.vagasOcupadas--;
+    }
 }

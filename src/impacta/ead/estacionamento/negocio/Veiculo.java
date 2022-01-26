@@ -19,6 +19,10 @@ public class Veiculo {
         this.cor = cor;
     }
 
+    public Veiculo (String rplaca){
+        this.placa = rplaca;
+    }
+
     public String getPlaca() {
         return placa;
     }
