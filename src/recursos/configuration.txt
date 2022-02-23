@@ -1,6 +1,6 @@
 url=jdbc:mysql://localhost:3306/estacionamento
 usuario=root
-senha=E0ofh9?!@#$%
+senha=root
 
 
 insertMov=insert into tb_movimentacao (placa,marca, modelo, cor, data_entrada) values (?, ?, ?, ?, ?);
